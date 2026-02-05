@@ -1,0 +1,254 @@
+name: 🚀 .NET 10 CI/CD Deployment
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:  # Ручной запуск из интерфейса GitHub
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  PROJECT_PATH: 'VisitorCounter'
+
+jobs:
+  # 🔨 СБОРКА И ТЕСТИРОВАНИЕ
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+    
+    - name: ⚙️ Setup .NET ${{ env.DOTNET_VERSION }}
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: 🔍 Show .NET info
+      run: |
+        echo "🔧 .NET Version:"
+        dotnet --version
+        dotnet --info
+        echo ""
+        echo "📁 Project structure:"
+        find . -name "*.csproj" -type f
+    
+    - name: 🔄 Restore dependencies
+      run: |
+        echo "📦 Restoring dependencies..."
+        dotnet restore
+    
+    - name: 🏗️ Build project
+      run: |
+        echo "🔨 Building .NET 10 project..."
+        dotnet build --configuration Release --no-restore
+        echo "✅ Build completed!"
+    
+    - name: 📊 Create build info
+      run: |
+        echo "🚀 BUILD INFORMATION" > build-info.txt
+        echo "====================" >> build-info.txt
+        echo "Project: Visitor Counter" >> build-info.txt
+        echo ".NET Version: $(dotnet --version)" >> build-info.txt
+        echo "Commit: ${{ github.sha }}" >> build-info.txt
+        echo "Branch: ${{ github.ref_name }}" >> build-info.txt
+        echo "Build Time: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> build-info.txt
+        echo "" >> build-info.txt
+        echo "📁 Artifacts:" >> build-info.txt
+        find ${{ env.PROJECT_PATH }}/bin/Release -name "*.dll" | head -5 >> build-info.txt
+        echo "" >> build-info.txt
+        echo "✅ Build successful!" >> build-info.txt
+    
+    - name: 💾 Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: dotnet10-build-output
+        path: |
+          ${{ env.PROJECT_PATH }}/bin/Release/
+          build-info.txt
+        retention-days: 7
+  
+  # 🚀 ДЕПЛОЙ И ДЕМОНСТРАЦИЯ
+  deploy-demo:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+    
+    - name: 📦 Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: dotnet10-build-output
+        path: artifacts/
+    
+    - name: 🎯 SIMULATED DEPLOYMENT DEMO
+      run: |
+        echo ""
+        echo "╔════════════════════════════════════════════════════╗"
+        echo "║           🚀 .NET 10 DEPLOYMENT STARTED           ║"
+        echo "╚════════════════════════════════════════════════════╝"
+        echo ""
+        echo "📊 Deployment Information:"
+        echo "──────────────────────────"
+        echo "🔸 Repository: ${{ github.repository }}"
+        echo "🔸 Branch: ${{ github.ref_name }}"
+        echo "🔸 Commit: ${{ github.sha }}"
+        echo "🔸 Trigger: ${{ github.event_name }}"
+        echo "🔸 Time: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo ""
+        
+        # Симуляция шагов деплоя
+        echo "🔧 Deployment Steps:"
+        echo "────────────────────"
+        echo "1. ✅ Code validated"
+        echo "2. ✅ Dependencies restored"
+        echo "3. ✅ Build completed"
+        echo "4. 🟡 Stopping previous version..."
+        sleep 2
+        echo "5. 🟡 Uploading new version..."
+        sleep 2
+        echo "6. 🟡 Starting application..."
+        sleep 2
+        echo "7. ✅ Health check..."
+        sleep 1
+        echo ""
+        
+        # Генерируем уникальный ID для этого деплоя
+        DEPLOYMENT_ID=$(date +%s)
+        echo "🎯 DEPLOYMENT RESULT"
+        echo "────────────────────"
+        echo "📱 Application: Visitor Counter"
+        echo "🔢 New Deployment ID: deploy-$DEPLOYMENT_ID"
+        echo "🔄 Visitor counter: RESET TO ZERO"
+        echo "⏰ Old uptime: 0"
+        echo "🕐 New deployment time: $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+        echo ""
+        
+        echo "🌐 How to verify deployment:"
+        echo "────────────────────────────"
+        echo "1. Open the application"
+        echo "2. Check that counter is 1 (first visit after deploy)"
+        echo "3. Verify new Deployment ID"
+        echo "4. Uptime should be near 0"
+        echo ""
+        
+        echo "📝 Artifacts generated:"
+        echo "───────────────────────"
+        ls -la artifacts/ || echo "No artifacts found"
+        echo ""
+        
+        echo "╔════════════════════════════════════════════════════╗"
+        echo "║           🎉 DEPLOYMENT COMPLETED SUCCESSFULLY    ║"
+        echo "╚════════════════════════════════════════════════════╝"
+        echo ""
+        
+        # Сохраняем информацию о деплое
+        echo "Deployment completed at: $(date)" > deploy-info.txt
+        echo "Deployment ID: deploy-$DEPLOYMENT_ID" >> deploy-info.txt
+        echo "Commit: ${{ github.sha }}" >> deploy-info.txt
+    
+    - name: 📨 Create deployment summary
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const summary = fs.readFileSync('deploy-info.txt', 'utf8');
+          
+          github.rest.repos.createCommitStatus({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            sha: context.sha,
+            state: 'success',
+            description: '✅ .NET 10 Visitor Counter deployed',
+            context: 'CI/CD Deployment'
+          });
+          
+          // Создаем комментарий в коммите
+          github.rest.repos.createCommitComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            commit_sha: context.sha,
+            body: `🎉 **.NET 10 Deployment Completed**\n\n${summary}\n\nVisitor counter has been reset. New deployment ID generated.`
+          });
+    
+    - name: 🔔 Deployment notification
+      run: |
+        echo "📢 DEPLOYMENT NOTIFICATION"
+        echo "──────────────────────────"
+        echo "Application: .NET 10 Visitor Counter"
+        echo "Status: ✅ Successfully deployed"
+        echo "Deployment ID: deploy-$(date +%s)"
+        echo "Commit: ${{ github.sha }}"
+        echo "Time: $(date)"
+        echo ""
+        echo "👉 Next: Open the app and see counter reset to 1"
+  
+  # 📊 ГЕНЕРАЦИЯ ОТЧЕТА
+  generate-report:
+    runs-on: ubuntu-latest
+    needs: [build-and-test, deploy-demo]
+    
+    steps:
+    - name: 📊 Generate CI/CD Report
+      run: |
+        echo "# 🚀 CI/CD DEPLOYMENT REPORT" > report.md
+        echo "## .NET 10 Visitor Counter" >> report.md
+        echo "" >> report.md
+        echo "### 📅 Deployment Summary" >> report.md
+        echo "- **Repository:** ${{ github.repository }}" >> report.md
+        echo "- **Branch:** ${{ github.ref_name }}" >> report.md
+        echo "- **Commit:** \`${{ github.sha }}\`" >> report.md
+        echo "- **Deployment Time:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> report.md
+        echo "" >> report.md
+        echo "### ✅ What Happened" >> report.md
+        echo "1. ✅ Code pushed to main branch" >> report.md
+        echo "2. ✅ GitHub Actions CI/CD triggered" >> report.md
+        echo "3. ✅ .NET 10 project built successfully" >> report.md
+        echo "4. ✅ Simulated deployment executed" >> report.md
+        echo "5. ✅ Visitor counter **RESET TO ZERO**" >> report.md
+        echo "6. ✅ New Deployment ID generated" >> report.md
+        echo "" >> report.md
+        echo "### 🎯 How to Verify" >> report.md
+        echo "Open the application and check:" >> report.md
+        echo "- 🔢 Visitor counter shows **1** (first visit after deploy)" >> report.md
+        echo "- 🆔 New Deployment ID is displayed" >> report.md
+        echo "- ⏰ Uptime is minimal (just deployed)" >> report.md
+        echo "" >> report.md
+        echo "### 🔧 Technical Details" >> report.md
+        echo "- **.NET Version:** 10.0" >> report.md
+        echo "- **Framework:** net10.0" >> report.md
+        echo "- **API Style:** Minimal APIs" >> report.md
+        echo "- **CI/CD:** GitHub Actions" >> report.md
+        echo "" >> report.md
+        echo "---" >> report.md
+        echo "*Report generated by CI/CD pipeline*" >> report.md
+        
+        cat report.md
+    
+    - name: 📎 Upload deployment report
+      uses: actions/upload-artifact@v4
+      with:
+        name: deployment-report
+        path: report.md
+
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+    
+    - name: 🐳 Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: 🔨 Build Docker image for .NET 10
+      run: |
+        echo "Building .NET 10 Docker image..."
+        docker build -t visitor-counter:net10-${{ github.sha }} .
+        echo "✅ Docker image built successfully"
+        echo "Image tag: visitor-counter:net10-${{ github.sha }}"

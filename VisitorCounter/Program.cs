@@ -6,7 +6,6 @@ var deploymentId = Guid.NewGuid().ToString("N")[..8];
 var startTime = DateTime.UtcNow;
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -21,8 +20,7 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+   
 }
 
 app.UseCors("AllowAll");
