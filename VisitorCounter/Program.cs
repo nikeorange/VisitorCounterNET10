@@ -217,24 +217,24 @@ app.MapGet("/", async (HttpContext context) =>
         <div class='container'>
             <div class='header'>
                 <span class='badge'>.NET 10.0</span>
-                <h1>🚀 Visitor Counter with CI/CD</h1>
+                <h1>Visitor Counter with CI/CD</h1>
                 <p>Watch the counter reset on every deployment!</p>
             </div>
             
             <div class='counter' id='counter'>Loading...</div>
             
             <div class='info'>
-                <p><strong>🔧 How it works:</strong> Each visit increments the counter. When CI/CD deploys new version, counter resets to 0!</p>
-                <p><strong>🆔 Deployment ID:</strong> <span class='deployment-id' id='deploymentId'>-</span></p>
-                <p><strong>⏰ Uptime:</strong> <span id='uptime'>-</span></p>
-                <p class='ci-status ci-success'>✅ CI/CD: Active | GitHub Actions</p>
+                <p><strong>How it works:</strong> Each visit increments the counter. When CI/CD deploys new version, counter resets to 0!</p>
+                <p><strong>Deployment ID:</strong> <span class='deployment-id' id='deploymentId'>-</span></p>
+                <p><strong>Uptime:</strong> <span id='uptime'>-</span></p>
+                <p class='ci-status ci-success'>CI/CD: Active | GitHub Actions</p>
             </div>
             
             <div class='buttons'>
-                <button onclick='visit()'>🔄 Visit Again</button>
-                <button onclick='getStats()'>📊 Show Stats</button>
-                <button onclick='simulateDeploy()'>🚀 Simulate Deployment</button>
-                <button onclick='location.reload()'>↻ Refresh Page</button>
+                <button onclick='visit()'>Visit Again</button>
+                <button onclick='getStats()'>Show Stats</button>
+                <button onclick='simulateDeploy()'>Simulate Deployment</button>
+                <button onclick='location.reload()'>Refresh Page</button>
             </div>
             
             <div class='stats' id='stats'></div>
@@ -270,8 +270,8 @@ app.MapGet("/", async (HttpContext context) =>
                 try {
                     const response = await fetch('/api/visit/reset');
                     const data = await response.json();
-                    alert('🚀 Simulated Deployment!\n' + data.message);
-                    visit(); // Обновляем данные
+                    alert('Simulated Deployment!\n' + data.message);
+                    visit(); 
                 } catch (error) {
                     console.error('Error:', error);
                 }
@@ -279,12 +279,12 @@ app.MapGet("/", async (HttpContext context) =>
             
             function updateDisplay(data) {
                 document.getElementById('counter').textContent = 
-                    `👁️ ${data.visitNumber} visits`;
+                    `${data.visitNumber} visits`;
                 document.getElementById('deploymentId').textContent = data.deploymentId;
                 document.getElementById('uptime').textContent = data.uptime;
                 
                 document.getElementById('stats').innerHTML = \`
-                    <h3>📈 Current Session</h3>
+                    <h3>Current Session</h3>
                     <p><strong>Server Time:</strong> \${data.serverTime}</p>
                     <p><strong>Version:</strong> \${data.version} (\${data.framework})</p>
                     <p><strong>Health:</strong> \${data.health}</p>
@@ -293,7 +293,7 @@ app.MapGet("/", async (HttpContext context) =>
             
             function showStats(data) {
                 document.getElementById('stats').innerHTML = \`
-                    <h3>📊 Statistics</h3>
+                    <h3>Statistics</h3>
                     <p><strong>Total Visits:</strong> \${data.totalVisits}</p>
                     <p><strong>Visits per Minute:</strong> \${data.visitsPerMinute}</p>
                     <p><strong>Deployment Time:</strong> \${data.deploymentTime}</p>
@@ -302,10 +302,10 @@ app.MapGet("/", async (HttpContext context) =>
                 \`;
             }
             
-            // Загружаем данные при старте
+
             visit();
             
-            // Авто-обновление каждые 30 секунд
+
             setInterval(visit, 30000);
         </script>
     </body>
